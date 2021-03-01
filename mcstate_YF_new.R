@@ -7,22 +7,22 @@ sero_data3 <- particle_filter_data(data = sero_data2,time = "year",rate = 1)
 model_file = "YFOutbreak_dust.cpp"
 YFmodel <- dust::dust(model_file) #Compile model
 #-----------------------------------------------------------------------------------------------------
-n_particles <- 4 #If this is set to more than 1, pmcmc() returns error
-n_threads <- 4 #This can be set to more than 1 without causing an error
+n_particles <- 100
+n_threads <- 4 
 filter <- particle_filter$new(data = sero_data3,model = YFmodel,
                               n_particles = n_particles, n_threads=n_threads, compare = sero_compare,seed = 1L)
 #-----------------------------------------------------------------------------------------------------
 # Parameters for fitting - log reproduction number and log external FOI
-logR0 <- pmcmc_parameter("logR0", log(5.0), min = log(0.5),max=log(10.0),
+logR0 <- pmcmc_parameter("logR0", log(1.5), min = log(0.5),max=log(10.0),
                          prior = function(p)
-                           dnorm(p, mean = log(5.0), sd=log(2.0), log = FALSE))
-logfoi <- pmcmc_parameter("logfoi", log(1.0e-4), min = log(5.0e-6),max=log(1.0e-3),
+                           dnorm(p, mean = log(1.5), sd=log(2.0), log = FALSE))
+logfoi <- pmcmc_parameter("logfoi", log(1.0e-6), min = log(1.0e-7),max=log(1.0e-3),
                           prior = function(p)
-                            dnorm(p, mean = log(1.0e-6), sd=log(5.0), log = FALSE))
+                            dnorm(p, mean = log(1.0e-5), sd=log(10.0), log = FALSE))
 proposal_matrix <- matrix(c(0.001, 0, 0, 0.001), nrow = 2, ncol = 2, byrow = TRUE)
 pars=list(logfoi=logfoi,logR0=logR0)
 mcmc_pars <- pmcmc_parameters$new(pars, proposal_matrix)
-n_steps=1000
+n_steps=100
 control <- pmcmc_control(n_steps=n_steps,save_state = TRUE,save_trajectories = TRUE,progress = TRUE)
 #-----------------------------------------------------------------------------------------------------
 pmcmc_run <- pmcmc(mcmc_pars, filter, control = control)
